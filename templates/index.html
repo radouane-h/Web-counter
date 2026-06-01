@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Redone — Hit Counter{% endblock %}
+
+{% block extra_styles %}
+  .hero {
+    padding: 72px 0 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-eyebrow::after {
+    content: '';
+    flex: 1;
+    max-width: 48px;
+    height: 1px;
+    background: var(--amber);
+    opacity: 0.4;
+  }
+  .hero-title {
+    font-family: var(--font-sans);
+    font-size: clamp(40px, 7vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .hero-title em {
+    font-style: normal;
+    color: var(--amber);
+  }
+  .hero-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Counter ── */
+  .counter-section {
+    padding: 64px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .counter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .counter-cell {
+    background: var(--surface);
+    padding: 40px 36px;
+  }
+  .counter-cell.main {
+    background: var(--surface-2);
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .counter-cell.main::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--amber);
+    box-shadow: 0 0 24px var(--amber-glow);
+  }
+  .counter-cell.main::after {
+    content: attr(data-count);
+    position: absolute;
+    right: -20px; bottom: -30px;
+    font-family: var(--font-sans);
+    font-size: 180px;
+    font-weight: 800;
+    color: var(--text);
+    opacity: 0.025;
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+  }
+  .big-num {
+    font-family: var(--font-sans);
+    font-size: clamp(80px, 14vw, 128px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--amber);
+    text-shadow: 0 0 40px var(--amber-glow);
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.6) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .big-num-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    padding-bottom: 14px;
+    line-height: 1.8;
+  }
+
+  .cell-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 10px;
+  }
+  .cell-value {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .cell-value.green { color: var(--green); }
+  .cell-value.red   { color: var(--red); }
+  .cell-value small {
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 300;
+    margin-left: 4px;
+  }
+
+  /* ── Refresh bar ── */
+  .refresh-bar {
+    padding: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .refresh-note {
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.05em;
+  }
+  .refresh-note span {
+    color: var(--amber);
+  }
+  .btn-reset {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--border-2);
+    color: var(--text-2);
+    padding: 7px 16px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-reset:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* ── Info grid ── */
+  .info-section {
+    padding: 48px 0 72px;
+  }
+  .section-heading {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 24px;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .info-row:first-child { border-top: 1px solid var(--border); }
+  .info-key  { color: var(--text-2); }
+  .info-val  { color: var(--text); font-weight: 500; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .badge.ok  { background: rgba(61,220,132,0.1); color: var(--green); border: 1px solid rgba(61,220,132,0.2); }
+  .badge.err { background: rgba(255,77,77,0.1);  color: var(--red);   border: 1px solid rgba(255,77,77,0.2); }
+  .badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Page load fade-in sequence */
+  .hero, .counter-section, .info-section {
+    animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  .counter-section { animation-delay: 0.08s; }
+  .info-section     { animation-delay: 0.16s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+
+  <section class="hero">
+    <div class="hero-eyebrow">Live Metrics</div>
+    <h1 class="hero-title">Hello from <em>Redone</em></h1>
+    <p class="hero-sub">Each page load increments the Redis counter. Refresh to see it grow.</p>
+  </section>
+
+  <section class="counter-section">
+    <div class="counter-grid">
+
+      <div class="counter-cell main" data-count="{{ count }}">
+        <div class="big-num" id="hit-count">{{ count }}</div>
+        <div class="big-num-label">total<br>page<br>views</div>
+      </div>
+
+      <div class="counter-cell">
+        <div class="cell-label">Redis Status</div>
+        {% if info.status == 'connected' %}
+          <div class="cell-value green">Connected</div>
+        {% else %}
+          <div class="cell-value red">Offline</div>
+        {% endif %}
+      </div>
+
+      <div class="counter-cell">
+        <div class="cell-label">App Uptime</div>
+        <div class="cell-value">{{ uptime }}</div>
+      </div>
+
+      {% if info.status == 'connected' %}
+      <div class="counter-cell">
+        <div class="cell-label">Redis Version</div>
+        <div class="cell-value">{{ info.version }}<small>stable</small></div>
+      </div>
+      <div class="counter-cell">
+        <div class="cell-label">Memory Used</div>
+        <div class="cell-value">{{ info.used_memory }}</div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <div class="refresh-bar">
+      <div class="refresh-note">
+        Auto-refreshes every <span>10s</span> · last updated <span id="last-updated">just now</span>
+      </div>
+      <button class="btn-reset" onclick="resetCounter()">Reset Counter</button>
+    </div>
+  </section>
+
+  <section class="info-section">
+    <div class="section-heading">System Info</div>
+    <div class="info-row">
+      <span class="info-key">Service</span>
+      <span class="info-val">Redone / Flask</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Cache Backend</span>
+      <span class="info-val">Redis 6379</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Connection</span>
+      <span class="info-val">
+        {% if info.status == 'connected' %}
+          <span class="badge ok">Healthy</span>
+        {% else %}
+          <span class="badge err">Unreachable</span>
+        {% endif %}
+      </span>
+    </div>
+    {% if info.status == 'connected' %}
+    <div class="info-row">
+      <span class="info-key">Redis Uptime</span>
+      <span class="info-val">{{ info.uptime_days }} day{{ 's' if info.uptime_days != 1 }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Connected Clients</span>
+      <span class="info-val">{{ info.connected_clients }}</span>
+    </div>
+    {% endif %}
+    <div class="info-row">
+      <span class="info-key">Stats API</span>
+      <span class="info-val"><a href="/api/stats">/api/stats</a></span>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let secondsAgo = 0;
+  const lastUpdatedEl = document.getElementById('last-updated');
+  const hitCountEl    = document.getElementById('hit-count');
+  const mainCell      = document.querySelector('.counter-cell.main');
+
+  // Tick the "last updated" label
+  setInterval(() => {
+    secondsAgo++;
+    lastUpdatedEl.textContent = secondsAgo === 1 ? '1s ago' : secondsAgo + 's ago';
+  }, 1000);
+
+  // Poll /api/stats every 10s and update the count live
+  setInterval(async () => {
+    try {
+      const res  = await fetch('/api/stats');
+      const data = await res.json();
+      if (data.hits !== parseInt(hitCountEl.textContent)) {
+        hitCountEl.style.transition = 'opacity 0.2s';
+        hitCountEl.style.opacity = '0';
+        setTimeout(() => {
+          hitCountEl.textContent = data.hits;
+          mainCell.dataset.count = data.hits;
+          hitCountEl.style.opacity = '1';
+        }, 200);
+      }
+      secondsAgo = 0;
+      lastUpdatedEl.textContent = 'just now';
+    } catch (e) { /* silent */ }
+  }, 10000);
+
+  async function resetCounter() {
+    if (!confirm('Reset the hit counter to zero?')) return;
+    const res = await fetch('/reset', { method: 'POST' });
+    if (res.ok) {
+      hitCountEl.textContent = '0';
+      mainCell.dataset.count = '0';
+    }
+  }
+</script>
+{% endblock %}
